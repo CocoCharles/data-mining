@@ -14,11 +14,6 @@ survey_data = pd.read_csv('HighSchoolSurvey.csv', dtype="str", encoding='cp1252'
 print(survey_data.head())
 print(survey_data['HousingInsecure'])
 
-#cols_to_drop = std[std==0].index
-#print(cols_to_drop)
-#heart_data.drop(cols_to_drop, inplace = True, axis=1)
-#print(heart_data)
-
 print(survey_data.dtypes)
 unique = survey_data['1.How old are you?'].unique()
 print(unique)

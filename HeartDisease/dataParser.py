@@ -23,7 +23,7 @@ for i in range(0, len(lines)-1):
 heart_data = pd.DataFrame(new_list)
 
 #Drop last rows
-heart_data.drop(heart_data.iloc[:, 282:293], inplace = True, axis = 0)
+heart_data = heart_data.drop(heart_data.iloc[:, 282:293], axis = 0)
 
 # Write out to CSV
 heart_data.to_csv('goodData.csv', encoding='utf-8', index=False)
