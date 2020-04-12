@@ -29,7 +29,7 @@ data = data.drop(data.iloc[:, 266:316], axis = 1)
 
 # Drop open ended question (string answers)
 # 'DontFitIn', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong'
-data = data.drop(['OtherProblems', 'Homeless2015'], axis=1)
+data = data.drop(['Year', 'Schoolcode', 'RespondentID', 'Weighting2', 'OtherProblems', 'Homeless2015'], axis=1)
 
 print(data.shape)
 print('First 5 rows of cleaned** data:\n', data.head(), '\n')
@@ -89,7 +89,7 @@ SD = data[data['IBelong'] == 4]
 #Value you are looking for
 ySA = SA['belong']
 #Dataset with missing value
-xSA = SA.drop(['Schoolcode', 'IBelong', 'belong'], axis = 1)
+xSA = SA.drop(['IBelong', 'belong'], axis = 1)
 
 #Split Training set (67%) and Testing set (33%)
 xSA_train, xSA_test, ySA_train, ySA_test = train_test_split(xSA, ySA, test_size = 0.33)
@@ -100,7 +100,7 @@ print("Total SA: ", xSA_test.shape[0] + xSA_train.shape[0], "\n  SA Test: ", xSA
 #Value you are looking for
 yA = A['belong']
 #Dataset with missing value
-xA = A.drop(['Schoolcode', 'IBelong', 'belong'], axis = 1)
+xA = A.drop(['IBelong', 'belong'], axis = 1)
 
 #Split Training set (67%) and Testing set (33%)
 xA_train, xA_test, yA_train, yA_test = train_test_split(xA, yA, test_size = 0.33)
@@ -110,7 +110,7 @@ print("\nTotal A: ", xA_test.shape[0] + xA_train.shape[0], "\n  A Test: ", xA_te
 #Value you are looking for
 yD = D['belong']
 #Dataset with missing value
-xD = D.drop(['Schoolcode', 'IBelong', 'belong'], axis = 1)
+xD = D.drop(['IBelong', 'belong'], axis = 1)
 
 #Split Training set (67%) and Testing set (33%)
 xD_train, xD_test, yD_train, yD_test = train_test_split(xD, yD, test_size = 0.33)
@@ -120,7 +120,7 @@ print("\nTotal D: ", xD_test.shape[0] + xD_train.shape[0], "\n  D Test: ", xD_te
 #Value you are looking for
 ySD = SD['belong']
 #Dataset with missing value
-xSD = SD.drop(['Schoolcode', 'IBelong', 'belong'], axis = 1)
+xSD = SD.drop(['IBelong', 'belong'], axis = 1)
 
 #Split Training set (67%) and Testing set (33%)
 xSD_train, xSD_test, ySD_train, ySD_test = train_test_split(xSD, ySD, test_size = 0.33)
@@ -166,26 +166,26 @@ print("\nTotal Data: ", y_test.shape[0]+y_train.shape[0])
 
 #Result: x_train, y_train, x_test, and y_test data sets
 
-# SVM Model
+# # SVM Model
 
-# Create SVM (using the support vector classifier class - SVC)
-svcclassifier = SVC(kernel='rbf')
-svcclassifier.fit(x_train, y_train)
+# # Create SVM (using the support vector classifier class - SVC)
+# svcclassifier = SVC(kernel='rbf')
+# svcclassifier.fit(x_train, y_train)
 
-# # Plot the decision boundary and support vectors
-# plot_decision_function(x_train, y_train, x_test, y_test, svcclassifier)
+# # # Plot the decision boundary and support vectors
+# # plot_decision_function(x_train, y_train, x_test, y_test, svcclassifier)
 
-#Predict Test Data
-y_predict = svcclassifier.predict(x_test)
-print(y_predict)
+# #Predict Test Data
+# y_predict = svcclassifier.predict(x_test)
+# print(y_predict)
 
-#Create Confuion Matrix
-print("Confusion Matrix:")
-print(confusion_matrix(y_test, y_predict))
+# #Create Confuion Matrix
+# print("Confusion Matrix:")
+# print(confusion_matrix(y_test, y_predict))
 
-#Compute Accuracy
-print("Accuracy:", accuracy_score(y_test,y_predict)*100, "\n")
+# #Compute Accuracy
+# print("Accuracy:", accuracy_score(y_test,y_predict)*100, "\n")
 
-#Compute Report
-print("Report: \n" , classification_report(y_test, y_predict))
+# #Compute Report
+# print("Report: \n" , classification_report(y_test, y_predict))
 
