@@ -4,51 +4,82 @@ Created on Tue Feb 18 17:01:29 2020
 
 @author: LabUser
 finishing svm
-looking at NaN
 looking into weighting
 http://webgraphviz.com/
+
+looking at NaN - k nearest neighbor
+removing records - must be scientific
+scaling - could try
+look into outliers?
+split up the classifaction rather than range
+we need more consulting with expert / social worker
 """
 
 import numpy as np
 import pandas as pd
-# import math.pyplot as plt
+import matplotlib.pyplot as plt
 
 import sklearn
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix 
+from sklearn import tree
 from sklearn.svm import SVC
 import pydotplus
 
 # Read in data
-data = pd.read_csv('DCYA2018.csv', na_values=[' '])
-print('First 5 rows of initial data:\n', data.head(), '\n')
-# print('First 5 rows of initial data:\n', data.tail(), '\n')
+data_original = pd.read_csv('DCYA2018.csv', na_values=[' '])
+# print('First 5 rows of initial data:\n', data.head(), '\n')
 
 # Drop columns
-data = data.drop(data.iloc[:, 266:316], axis = 1)
+data = data_original.drop(data_original.iloc[:, 266:316], axis = 1)
+# data = data.drop(data.index[50:16238])
 
 # Drop open ended question (string answers)
-# 'DontFitIn', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong'
-data = data.drop(['Year', 'Schoolcode', 'RespondentID', 'Weighting2', 'OtherProblems', 'Homeless2015'], axis=1)
+# 'DontFitIn', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong', 'DateSexRecode'
+data = data.drop(['Year', 'Schoolcode', 'RespondentID', 'Weighting2', 'OtherProblems', 'Homeless2015', 'HeightInch', 'HeightFeet', 'Weight'], axis=1)
 
 print(data.shape)
 print('First 5 rows of cleaned** data:\n', data.head(), '\n')
 print('Numer of instances = %d' %data.shape[0])
 print('Numer of attributes = %d' %data.shape[1])
-# print('Number of Missing Values', data['IBelong'].isna().sum())
-# data = data[data['IBelong'].notna()]
-# print('****After****\nNumber of Missing Values', data['IBelong'].isna().sum())
-# print('Numer of instances = %d' %data.shape[0])
-# print('Numer of attributes = %d' %data.shape[1])
+
+
+# Create column for sum of unanswered questions
+data['NotAnswered'] = data.isnull().sum(axis=1)
+
+# Keep rows with at least 25% (66) of questions - consider as noise ***
+data = data[data.NotAnswered < 200]
+# print('\t >200 = %.2f' % (data['NotAnswered'] > 200).sum())
+data = data.drop(['NotAnswered'], axis = 1)
+
+data.loc[(data['Abstinence'] == 15), 'NoIntercourse'] = 15
+print(data.NoIntercourse)
+
+# Recode columns with binary values to 0(no) and 1(yes)
+for col in data.columns:
+    if 0 in data[col].unique():
+        data.loc[(data[col] > 0), col] = 1
+        # data[col] = data[col].fillna(0.0)
 
 # for col in data.columns:
-    #count number of missing values in each column
-    # print('\t%s: %d' %(col, data[col].isna().sum()))
-data = data.fillna(data.median())
-# print('median: ', data.median())
+#     if data[col].isna().sum() > 3000:
+#         data[col] = data[col].fillna(0.0)
+
+# data = data.dropna()
+
+
 # for col in data.columns:
-#     #count number of missing values in each column
+#     # count number of missing values in each column
 #     print('\t%s: %d' %(col, data[col].isna().sum()))
+
+
+# K NEAREST NEIGHBOR ***
+# Replace NaN with mode
+for col in data.columns:
+    data[col] = data[col].fillna(data[col].mode()[0])
+# data = data.fillna(value = data.mode())
+print('First 5 rows of cleaned** data:\n', data.head(), '\n')
+
 
 # def change_type (col):
 for col in data.columns:
@@ -59,19 +90,43 @@ for col in data.columns:
 
 # print(data.dtypes)
 
-# Function to simplify IBelong col
-def simplify_belong (row):
-    if row['IBelong'] == 1 or row['IBelong'] == 2:
-        return '1'
-    if row['IBelong'] == 3 or row['IBelong'] == 4:
-        return '2'
 
-# Add a column that converts 'IBelong' to only 1 v 2
-# With 1 being agree and 2 being disagree
-data['belong'] = data.apply(lambda row: simplify_belong(row), axis=1)
-# print('IBelong col converted to binary:\n', data.belong, '\n', data.IBelong)
+#Find Number of each value
+# print("Number of each value\n",data['IBelong'].value_counts())
 
-# data.to_csv('checkshit.csv')
+#Create 2 classes: those who feel like they belong and those who do not
+belong_map = {1.0:1,
+              2.0:1,
+              3.0:2,
+              4.0:2}
+                 
+data["belong"] = data["IBelong"].map(belong_map)
+data['belong'] = data.belong.astype('float32')
+
+# print("\nNumber of each value (belong):\n")
+# print(data['belong'].value_counts())
+
+sex_protection_map = {1.0:1, 2.0:1, 3.0:1, 4.0:1, 5.0:1, 6.0:1, 7.0:1, 8.0:1, 9.0:1, 10.0:1, 11.0:1, 12.0:1, 15.0:0}
+for col in data.columns:
+    if 15 in data[col].unique():
+        data[col] = data[col].map(sex_protection_map)
+# data["Abstinence"] = data["Abstinence"].map(sex_protection_map)
+# data['Abstinence'] = data.Abstinence.astype('float32')
+
+
+# Add a column that converts 'Race' to only 1 v 2
+# With 1 being POC and 2 being white
+race_map = {1.0:1.0, 2.0:1.0, 3.0:1.0, 4.0:1.0, 5.0:1.0, 6.0:1.0, 7.0:1.0, 8.0:2.0, 9.0:1.0}
+data["Race"] = data["Race"].map(race_map)
+data['Race'] = data.Race.astype('float32')
+# print('Value counts for race:\n', data.Race.value_counts())
+
+
+for col in data.columns:
+    if data[col].nunique() == 1:
+        print(col)
+    # print(col, ': ', data[col].nunique())
+
 
 #Create table for Strongly Agree
 SA = data[data['IBelong'] == 1]
@@ -166,26 +221,49 @@ print("\nTotal Data: ", y_test.shape[0]+y_train.shape[0])
 
 #Result: x_train, y_train, x_test, and y_test data sets
 
-# # SVM Model
 
-# # Create SVM (using the support vector classifier class - SVC)
-# svcclassifier = SVC(kernel='rbf')
-# svcclassifier.fit(x_train, y_train)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(x_train)
 
-# # # Plot the decision boundary and support vectors
-# # plot_decision_function(x_train, y_train, x_test, y_test, svcclassifier)
+x_train = scaler.transform(x_train)
+X_test = scaler.transform(x_test)
 
-# #Predict Test Data
-# y_predict = svcclassifier.predict(x_test)
-# print(y_predict)
 
-# #Create Confuion Matrix
-# print("Confusion Matrix:")
-# print(confusion_matrix(y_test, y_predict))
+#Principal Component Analysis
+#Components created: 1. Linear Combinations of original attributes
+#                    2. Perpendicular to each other
+#                    3. Capture the maximum amount of variation in the data.
+from sklearn.decomposition import PCA
 
-# #Compute Accuracy
-# print("Accuracy:", accuracy_score(y_test,y_predict)*100, "\n")
+# # intialize pca and logistic regression model
+# pca = PCA(n_components=100)
 
-# #Compute Report
-# print("Report: \n" , classification_report(y_test, y_predict))
+# # fit and transform data
+# x_train = pca.fit_transform(x_train)
+# print(x_train)
+# x_test = pca.transform(x_test)
+# print(x_test)
+
+
+
+# SVM Model
+
+# Create SVM (using the support vector classifier class - SVC)
+svcclassifier = SVC(kernel='rbf')
+svcclassifier.fit(x_train, y_train)
+
+#Predict Test Data
+y_predictTest = svcclassifier.predict(x_test)
+y_predictTrain = svcclassifier.predict(x_train)
+
+print("Train Accuracy:", accuracy_score(y_train,y_predictTrain)*100, "\n")
+print("Test Accuracy:", accuracy_score(y_test,y_predictTest)*100, "\n")
+
+#Create Confuion Matrix
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_predictTest))
+
+#Compute Report
+print("Report: \n" , classification_report(y_test, y_predictTest))
 
