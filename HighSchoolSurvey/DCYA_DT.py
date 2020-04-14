@@ -14,6 +14,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import sklearn
+from sklearn import preprocessing
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix 
 from sklearn import tree
@@ -21,102 +22,20 @@ from sklearn.svm import SVC
 import pydotplus
 
 # Read in data
-data_original = pd.read_csv('DCYA2018.csv', na_values=[' '])
-# print('First 5 rows of initial data:\n', data.head(), '\n')
-
-# Drop columns
-data = data_original.drop(data_original.iloc[:, 266:316], axis = 1)
-# data = data.drop(data.index[50:16238])
-
-# Drop open ended question (string answers)
-# 'DontFitIn', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong', 'DateSexRecode'
-data = data.drop(['Year', 'Schoolcode', 'RespondentID', 'Weighting2', 'OtherProblems', 'Homeless2015', 'HeightInch', 'HeightFeet', 'Weight'], axis=1)
-
+data = pd.read_csv('DCYApreprocessed63.csv', index_col=0)
+print('First 5 rows of initial data:\n', data.head(), '\n')
 print(data.shape)
-print('First 5 rows of cleaned** data:\n', data.head(), '\n')
-print('Numer of instances = %d' %data.shape[0])
-print('Numer of attributes = %d' %data.shape[1])
+# print('Numer of instances = %d' %data.shape[0])
+# print('Numer of attributes = %d' %data.shape[1])
 
+# # Drop rows and columns
+# data = data.drop(data.index[1000:16288])
+# data = data_original.drop(data_original.iloc[:, 266:316], axis = 1)
 
-# recode columns with binary values to 0(no) and 1(yes)
-for col in data.columns:
-    if 0 in data[col].unique():
-        data.loc[(data[col] > 0), col] = 1
-        data[col] = data[col].fillna(0)
+# # Drop open ended question (string answers)
+# # 'DontFitIn', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong', 'DateSexRecode'
+# data = data.drop(['Year', 'Schoolcode', 'RespondentID', 'Weighting2', 'OtherProblems', 'Homeless2015', 'HeightInch', 'HeightFeet', 'Weight'], axis=1)
 
-
-# Replace NaN with mode
-for col in data.columns:
-    data[col] = data[col].fillna(data[col].mode()[0])
-# data = data.fillna(value = data.mode())
-print('First 5 rows of cleaned** data:\n', data.head(), '\n')
-
-# def change_type (col):
-for col in data.columns:
-    if data.dtypes[col] == 'int64':
-        data[col] = data[col].astype('int32')
-    if data.dtypes[col] == 'float64':
-        data[col] = data[col].astype('float32')
-
-# print(data.dtypes)
-
-
-# # recode columns with binary values to 0(no) and 1(yes)
-# for col in data.columns:
-#     if 0 in data[col].unique():
-#         data.loc[(data[col] > 0), col] = 1
-#         # data[col] = data[col].fillna(0)
-
-# for col in data.columns:
-#     if data[col].isna().sum() > 3000:
-#         data[col] = data[col].fillna(0)
-
-# data = data.dropna()
-
-# print('Number of instances = %d' %data.shape[0])
-# print('Number of attributes = %d' %data.shape[1])
-
-
-# Function to simplify IBelong col
-def simplify_belong (row):
-    if row['IBelong'] == 1 or row['IBelong'] == 2:
-        return '1'
-    if row['IBelong'] == 3 or row['IBelong'] == 4:
-        return '2'
-
-# Add a column that converts 'IBelong' to only 1 v 2
-# With 1 being agree and 2 being disagree
-data['belong'] = data.apply(lambda row: simplify_belong(row), axis=1)
-# print('IBelong col converted to binary:\n', data.belong, '\n', data.IBelong)
-
-
-# Function to simplify race col
-def simplify_race (row):
-    if row['Race'] < 8 or row['Race'] == 9:
-        return '1'
-    if row['Race'] == 8:
-        return '2'
-
-# Add a column that converts 'Race' to only 1 v 2
-# With 1 being POC and 2 being white
-data['Race'] = data.apply(lambda row: simplify_race(row), axis=1)
-# print('Race col converted to binary:\n', data.Race, '\n', data.raceBinary)
-print('Value counts for race:\n', data.Race.value_counts())
-
-
-# for col in data.columns:
-#     print(col, ': ', data[col].unique())
-
-# for col in data.columns:
-#     if 0 in data[col].unique():
-#         print(col, ': ', data[col].unique())
-
-# # data = data.replace(' ', np.NaN)
-# for col in data.columns:
-#     # count number of missing values in each column
-#     print('\t%s: %d' %(col, data[col].isna().sum()))
-
-# data.to_csv('sampleDCYA.csv')
 
 #Create table for Strongly Agree
 SA = data[data['IBelong'] == 1]
@@ -212,11 +131,46 @@ print("\nTotal Data: ", y_test.shape[0]+y_train.shape[0])
 #Result: x_train, y_train, x_test, and y_test data sets
 
 
+# Min Max Scaler
+scaler = preprocessing.MinMaxScaler(feature_range=(0,1))
+scaler.fit(x_train)
+
+x_train1 = scaler.transform(x_train)
+x_test = scaler.transform(x_test)
+
+print(x_train1)
+
+# # Robust Scaler
+# scaler = preprocessing.RobustScaler()
+# # scaler.fit(x_train)
+
+# x_train = scaler.fit_transform(x_train)
+# x_test = scaler.transform(x_test)
+
+# print(x_train)
+
+
+# # Principal Component Analysis
+# # Components created: 1. Linear Combinations of original attributes
+# #                    2. Perpendicular to each other
+# #                    3. Capture the maximum amount of variation in the data.
+# from sklearn.decomposition import PCA
+
+# # intialize pca and logistic regression model
+# pca = PCA(n_components=60)
+
+# # fit and transform data
+# x_train = pca.fit_transform(x_train)
+# print(x_train)
+# x_test = pca.transform(x_test)
+# print(x_test)
+
+
 #Create Decision Tree
 
 classifier = tree.DecisionTreeClassifier(criterion = 'gini', random_state = 100, max_depth = 5)
 #fit the data you are using to train
-classifier = classifier.fit(x_train, y_train)
+classifier = classifier.fit(x_train1, y_train)
 #Create variables 
 Y = data['belong']
 X = data.drop(['IBelong','belong'], axis = 1)
@@ -228,40 +182,16 @@ with open("belonging_gini.txt", "w") as f:
 
 
 #Predict Test Data
-y_predict = classifier.predict(x_test)
+y_predictTest = classifier.predict(x_test)
+y_predictTrain = classifier.predict(x_train1)
+
+print("Train Accuracy:", accuracy_score(y_train,y_predictTrain)*100, "\n")
+print("Test Accuracy:", accuracy_score(y_test,y_predictTest)*100, "\n")
 
 #Create Confuion Matrix
-print("Gini Confusion Matrix:")
-print(confusion_matrix(y_test, y_predict))
-
-#Compute Accuracy
-print("Accuracy:", accuracy_score(y_test,y_predict)*100, "\n")
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_predictTest))
 
 #Compute Report
-print("Report: \n" ,
-classification_report(y_test, y_predict))
-
-
-# # SVM Model
-
-# # Create SVM (using the support vector classifier class - SVC)
-# svcclassifier = SVC(kernel='rbf')
-# svcclassifier.fit(x_train, y_train)
-
-# # # Plot the decision boundary and support vectors
-# # plot_decision_function(x_train, y_train, x_test, y_test, svcclassifier)
-
-# #Predict Test Data
-# y_predict = svcclassifier.predict(x_test)
-# print(y_predict)
-
-# #Create Confuion Matrix
-# print("Confusion Matrix:")
-# print(confusion_matrix(y_test, y_predict))
-
-# #Compute Accuracy
-# print("Accuracy:", accuracy_score(y_test,y_predict)*100, "\n")
-
-# #Compute Report
-# print("Report: \n" , classification_report(y_test, y_predict))
+print("Report: \n" , classification_report(y_test, y_predictTest))
 

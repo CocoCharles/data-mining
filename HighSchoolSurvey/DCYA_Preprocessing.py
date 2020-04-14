@@ -5,15 +5,15 @@ Preprocessing data
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 import sklearn
 from sklearn.impute import KNNImputer
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix 
-from sklearn import tree
-from sklearn.svm import SVC
-import pydotplus
+# from sklearn.metrics import accuracy_score, classification_report, confusion_matrix 
+# from sklearn import tree
+# from sklearn.svm import SVC
+# import pydotplus
 
 
 # Read in data
@@ -32,14 +32,31 @@ print(data.shape)
 # print('Numer of instances = %d' %data.shape[0])
 # print('Numer of attributes = %d' %data.shape[1])
 
+
+# # Create column for sum of unanswered questions
+# data['NotAnswered'] = data.isna().sum(axis=1)
+
+# # Keep rows with at least 25% (66) of questions - consider as noise ***
+# data = data[data.NotAnswered < 200]
+# # print('\t >200 = %.2f' % (data['NotAnswered'] > 200).sum())
+# data = data.drop(['NotAnswered'], axis = 1)
+
+
 # Add values missing from NoIntercourse
 data.loc[(data['Abstinence'] == 15), 'NoIntercourse'] = 15
-print('\nNumber of each value in NoIntercourse:\n', data['NoIntercourse'].value_counts())
+# print('\nNumber of each value in NoIntercourse:\n', data['NoIntercourse'].value_counts())
 
 # Recode columns with binary values to 0(no) and 1(yes)
 for col in data.columns:
     if 0 in data[col].unique():
         data.loc[(data[col] > 0), col] = 1
+
+
+# # Replace NaN with mode
+# for col in data.columns:
+#     data[col] = data[col].fillna(data[col].mode()[0])
+# # data = data.fillna(value = data.mode())
+# # print('First 5 rows of cleaned** data:\n', data.head(), '\n')
 
 
 # Change types from 64 to 32
@@ -59,53 +76,31 @@ belong_map = {1.0:1,
                  
 data['belong'] = data['IBelong'].map(belong_map)
 # data['belong'] = data.belong.astype('float32')
-print('\nNumber of each value in belong:\n', data['belong'].value_counts())
+# print('\nNumber of each value in belong:\n', data['belong'].value_counts())
 
 # Recode attributes of the 'protected sex' question to binary 0 and 1
 sex_protection_map = {1.0:1, 2.0:1, 3.0:1, 4.0:1, 5.0:1, 6.0:1, 7.0:1, 8.0:1, 9.0:1, 10.0:1, 11.0:1, 12.0:1, 15.0:0}
 for col in data.columns:
     if 15 in data[col].unique():
         data[col] = data[col].map(sex_protection_map)
-print('\nNumber of each value in IUD:\n', data['IUD'].value_counts())
+# print('\nNumber of each value in IUD:\n', data['IUD'].value_counts())
+
+# Add a column that converts 'Race' to only 1 v 2
+# With 1 being POC and 2 being white
+# race_map = {1.0:1.0, 2.0:1.0, 3.0:1.0, 4.0:1.0, 5.0:1.0, 6.0:1.0, 7.0:1.0, 8.0:2.0, 9.0:1.0}
+# data["Race"] = data["Race"].map(race_map)
+# data['Race'] = data.Race.astype('float32')
+# print('Value counts for race:\n', data.Race.value_counts())
 
 print('\nCleaned data with NaNs:\n', data)
 
-
+# data.to_csv('DCYAmode.csv')
 
 
 # Imputing missing values using K Nearest Neighbor Imputer
 
 # Column names
-data_columns = ['Age','Grade','Race','Sex','SexualOrientation','GenderID','Transgender','LivingSituation','RunAway','FamHomeless','Homeless','FosterCare',
-'KickedOut','ChangedSchools','FamFinacial','Employment','SuppoprtFam','Volunteerting','Sports','HomeWorkClub','DramaMusic','StudentLeadership','Religious',
-'AfterSchoolClubs','PhysicallyActive','Exercise','NoLimits','NoTime','DontLike','HealthProbs','NoSkills','NoProgram','NoSignUp','CostsTooMuch','NoTransport',
-'Other','Sleep','SleepPhone','DriveText','DoAboutWeight','FruitsVeggies','FamilyMeals','Breakfast','SkipMealsNo$$','SugaryDrink','CaffeineDrink',
-'DisabilityEducation','DisabilityPhysical','DentistCheckup','DentalPain','WeatSeatBelt','GunAccess','ParentMentalHealth','ParentJail','ParentHit',
-'ParentDrunk','ParentPrescptDrugs','ParentsFight','ParentsKnowWhereIAm','ParentsRules','ParentsFuturePlans','ParentsConsquences','ParentsEncourage',
-'ParentsMonitorSchool','ParentsTalkProblems','FeltAnxious','CantStopWorry','PilingUp','TooMuchWorry','CantRelax','Restless','Annoyed','Afraid', 
-'NoAnxiety', 'PressureThings', 'TooMuchHomework', 'SocialPressure', 'SchoolPressure', 'DontFitIn', 'CollegePressure', 'HomeProblems', 'WorldProblems', 
-'Deportation', 'OKtoGetMentalHealthCare', 'NotMakeBigDeal', 'TendtoObsess', 'CareINeed', 'DontBlockFeelings', 'Shortcomings', 'LackTolerance', 
-'NoEmotionalHealthProbs', 'Depression2', 'Anxiety2', 'EatingDis', 'ADHD', 'OtherEmotionalHealthProb', 'Depression', 'MentalHealthServices', 'SelfHarm', 
-'SuicideIdeation', 'Suicide', 'SexualContact', 'ReasonsNoSex', 'SexualIntercourse', 'AgeIntercourse', 'NumberSexPartners', 'SexUnderInfluence', 
-'SexPartnerGender', 'BirthControl', 'NoIntercourse', 'Abstinence', 'Pills', 'Implants', 'Patch', 'NuvaRing', 'Condom', 'Shots', 'IUD', 'Withdrawal', 
-'OtherMethod', 'Nothing', 'UseCondomProtection', 'WhereToGetBirthcontrol', 'WhereToGetSTITest', 'EverTestSTI', 'WhyNeverTested', 'HowManyHaveSex', 
-'ParentTalkSex', 'ParentTalkDating', 'ParentTalkBirthControl', 'ParentTalkSTI', 'Vaping', 'Cigarettes', 'RollYourOwn', 'Flavored', 'Clove', 
-'LittleCigars', 'Chewing', 'Hookah', 'TobaccoSource', 'Alcohol12Mo', 'ReasonsNoDrink', 'Alcohol30days', 'Binge30days', 'AlcoholDrive', 'AlcoholSource', 
-'ParentsKnow', 'ParentsProvide', 'Marijuana12Mo', 'Marijuana30days', 'MarijuanaDriving', 'PrescriptDrugs', 'OverCounterDrugs', 'Cocaine', 'Inhale', 
-'SpeedMeth', 'Heroin', 'Ecstasy', 'BathSalts', 'K2', 'Steroids', 'PresriptsHome', 'WherePrescriptDrugs', 'AODtoRelax', 'AODDWI', 'AODAlone', 'AODForget', 
-'AODFriendsSTop', 'AODinTrouble', 'RiskPackofCigs', 'RiskBingeDrinking', 'RiskMarijuana', 'RiskPrescriptDrugs', 'RiskEcigs', 'ParentsWrongMarijunana', 
-'ParentsWrongTobacco', 'ParentsWrongAlcohol', 'ParentsWrongPrescrptDrugs', 'ParentsWrongAlcoholDaily', 'YourAgeAlcohol', 'YourAgeMarijuana', 
-'YourAgeTobacco', 'YourAgePrescrptDrugs', 'FriendsWrongAlcohol', 'FriendsWrongTobacco', 'FriendsWrongMarijuana', 'FriendsWrongPrescriptDrugs', 
-'FriendsWrongDailyAlcohol', 'GradesInSchool', 'FinishHighSchool', 'GoToTechSchool', 'GoToCollege', 'LookForJob', 'JoinMilitary', 'CareerILike', 
-'IEP', 'FreeReduced', 'NeedSchoolMeals', 'Rules', 'CloseToPeople', 'FeelSafe', 'TreatedFairly', 'AdultsToTalkTo', 'IBelong', 'StruggleHomeWork', 
-'TooMuchHomeWork2', 'HomeWorkTooHard', 'TooMuchToDo', 'CantGetHelp', 'TooTired', 'APClasses', 'CutClass', 'InSchoolSuspension', 'OutOfSchoolSuspension', 
-'SeenAtSchoolDrugUse', 'SeenAtSchoolSellingDrugs', 'SeenAtSchoolWeapons', 'SeenAtSchoolGangs', 'SeenAtSchoolBullying', 'SeenAtSchoolNameCalling', 
-'SeenAtSchoolStudentPutDowns', 'InaGang', 'FriendsInGang', 'HeardSexualComments', 'GotHitPushed', 'MadeFunofOthers', 'GotPickedOn', 'UpsetOthers', 
-'StartedArguments', 'SpreadRumors', 'ToldSomeoneToStop', 'MadeFunofMe', 'ExcludedOthers', 'GotCalledNames', 'HelpedHarass', 'BulliedHarassedElectronic', 
-'BulliedHarassedGLBT', 'BulliedHarassedRace', 'BulliedHarassedImmigrant', 'BulliedHarassedPolitics', 'BulliedHarassedLooks', 'DatingViolence', 
-'DatingPutDowns', 'DatingControl', 'DatingThreats', 'DatingForcedSex', 'DatingNoControlViolence', 'PerpDatingViolence', 'ForcedSex', 'SexTrafficking',
-'AskNeighborsForHelp', 'WouldMissNeighborhood', 'SafeInNeighborhood', 'NeighborsFriendly', 'CountOnPolice', 'HelpMyNeighbors', 'AdultsIRelyOn', 'belong']
-
+data_columns = data.columns
 
 
 # Split first 1/16 (1018 records)
@@ -113,7 +108,7 @@ remaining, current = train_test_split(data, test_size = 1018)
 print('Remaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 print(fill_data)
 
@@ -131,7 +126,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -149,7 +144,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -167,7 +162,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -185,7 +180,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -203,7 +198,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -221,7 +216,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -239,7 +234,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -257,7 +252,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -275,7 +270,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -293,7 +288,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -311,7 +306,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -329,7 +324,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -347,7 +342,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -365,7 +360,7 @@ remaining, current = train_test_split(remaining, test_size = 1018)
 print('\nRemaining shape: ', remaining.shape, '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -383,7 +378,7 @@ current = remaining
 print('\nRemaining shape: 0', '\nCurrent shape: ', current.shape)
 
 # Imputation of missing values (returns array)
-imputer = KNNImputer(n_neighbors=31)
+imputer = KNNImputer(n_neighbors=63)
 fill_data = imputer.fit_transform(current)
 
 # Round to nearest integer
@@ -396,5 +391,7 @@ add_data = pd.DataFrame(fill_data, columns=data_columns, dtype='int32')
 data = pd.concat([data, add_data], ignore_index=True)
 
 print(data)
-data.to_csv('DCYApreprocessed.csv')
-print('isna ', data.isna().sum())
+data.to_csv('DCYApreprocessed63.csv')
+# for col in data.columns:
+#     print(col, ':\n', data[col].value_counts())
+
