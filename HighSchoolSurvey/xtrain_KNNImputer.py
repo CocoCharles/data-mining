@@ -18,10 +18,10 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 
 # Read in data
 # data_original = pd.read_csv('DCYA2018.csv', na_values=[' '])
-x_train = pd.read_csv('x_train.csv')
-y_train = pd.read_csv('y_train.csv')
-x_test = pd.read_csv('x_test.csv')
-y_test = pd.read_csv('y_test.csv')
+x_train = pd.read_csv('x_train.csv', index_col=0)
+y_train = pd.read_csv('y_train.csv', index_col=0)
+x_test = pd.read_csv('x_test.csv', index_col=0)
+y_test = pd.read_csv('y_test.csv', index_col=0)
 print('First 5 rows of initial x_train:\n', x_train.head(), '\n')
 print('First 5 rows of initial y_train:\n', y_train.head(), '\n')
 print('First 5 rows of initial x_test:\n', x_test.head(), '\n')
@@ -172,6 +172,7 @@ add_data = pd.DataFrame(fill_data, columns=x_train_columns)
 x_train = pd.concat([data, add_data], ignore_index=True)
 
 print(x_train)
+x_train.to_csv('x_train.csv')
 
 
 # # Split 10

@@ -93,9 +93,6 @@ for col in data.columns:
 # data['Race'] = data.Race.astype('float32')
 # print('Value counts for race:\n', data.Race.value_counts())
 
-# Create column for sum of unanswered belong questions
-nan_belong = data[data.belong.isna()]
-print('\nUnanswered belong questions:\n', nan_belong)
 
 print('\nCleaned data with NaNs:\n', data)
 
@@ -103,6 +100,12 @@ print('\nCleaned data with NaNs:\n', data)
 
 # Column names
 data_columns = data.columns
+
+
+# Create column for sum of unanswered belong questions
+nan_belong = data[data.belong.isna()]
+print('\nUnanswered belong questions:\n', nan_belong)
+
 
 #Create table for Strongly Agree
 SA = data[data['IBelong'] == 1]
@@ -129,12 +132,14 @@ A = xscaler.transform(A)
 D = xscaler.transform(D)
 SD = xscaler.transform(SD)
 
+# nan_belong = xscaler.transform(nan_belong)
+
 # Convert to dataframe
 SA = pd.DataFrame(SA, columns=data_columns)
 A = pd.DataFrame(A, columns=data_columns)
 D = pd.DataFrame(D, columns=data_columns)
 SD = pd.DataFrame(SD, columns=data_columns)
-
+# nan_belong = pd.DataFrame(nan_belong, columns=data_columns)
 
 print(SA)
 print(D)
@@ -181,6 +186,16 @@ xSD = SD.drop(['IBelong', 'belong'], axis = 1)
 xSD_train, xSD_test, ySD_train, ySD_test = train_test_split(xSD, ySD, test_size = 0.33)
 print("\nTotal SD: ", xSD_test.shape[0] + xSD_train.shape[0], "\n  SD Test: ", xSD_test.shape[0], "\n  SD Train: ", xSD_train.shape[0])
 
+#     #nan_belong Represenation
+# #Value you are looking for
+# yNan = nan_belong['belong']
+# #Dataset with missing value
+# xNan = nan_belong.drop(['IBelong', 'belong'], axis = 1)
+
+# #Split Training set (67%) and Testing set (33%)
+# xNan_train, xNan_test, yNan_train, yNan_test = train_test_split(xNan, yNan, test_size = 0.33)
+# print("\nTotal Nan: ", xNan_test.shape[0] + xNan_train.shape[0], "\n  Nan Test: ", xNan_test.shape[0], "\n  Nan Train: ", xNan_train.shape[0])
+
 
 #Create training data: combine samples for your X and Y
 
@@ -223,10 +238,10 @@ print("\nTotal Data: ", y_test.shape[0]+y_train.shape[0])
 
 #Result: x_train, y_train, x_test, and y_test data sets
 
-x_train.to_csv('x_train.csv')
-y_train.to_csv('y_train.csv')
-x_test.to_csv('x_test.csv')
-y_test.to_csv('y_test.csv')
+# x_train.to_csv('x_train.csv')
+# y_train.to_csv('y_train.csv')
+# x_test.to_csv('x_test.csv')
+# y_test.to_csv('y_test.csv')
 
 
 # # Min Max Scaler
