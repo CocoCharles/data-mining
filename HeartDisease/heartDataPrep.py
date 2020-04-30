@@ -7,7 +7,7 @@ heart_data = pd.read_csv('goodData.csv', na_values = ['-9'])
 print('Initial dataframe:\n', heart_data)
 
 # Drop columns 75-421
-heart_data.drop(heart_data.iloc[:, 75:421], inplace = True, axis = 1)
+heart_data = heart_data.drop(heart_data.iloc[:, 75:421], axis = 1)
 
 # Assign column names, 75 attributes since patient name has been removed
 heart_data.columns = ['id', 'ssn', 'age', 'sex', 'painloc', 'painexer', 'relrest', 
@@ -26,7 +26,7 @@ print('Cleaner data:\n', heart_data, '\n')
 # # Get rid of columns with just one value
 # std = np.std(heart_data)
 # cols_to_drop = std[std==0].index
-# heart_data.drop(cols_to_drop, inplace = True, axis=1)
+# heart_data = heart_data.drop(cols_to_drop, axis=1)
 # print('Columns with a single value removed:\n', cols_to_drop, '\n')
 
 # Print datatypes for each column

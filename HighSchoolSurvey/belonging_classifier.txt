@@ -1,0 +1,32 @@
+digraph Tree {
+node [shape=box, style="filled", color="black"] ;
+0 [label="CloseToPeople <= 2.5\ngini = 0.313\nsamples = 10910\nvalue = [8792, 2118]\nclass = agree", fillcolor="#e58139c2"] ;
+1 [label="FeelSafe <= 2.5\ngini = 0.144\nsamples = 8394\nvalue = [7738, 656]\nclass = agree", fillcolor="#e58139e9"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="AdultsToTalkTo <= 2.5\ngini = 0.099\nsamples = 7506\nvalue = [7116, 390]\nclass = agree", fillcolor="#e58139f1"] ;
+1 -> 2 ;
+3 [label="gini = 0.072\nsamples = 6786\nvalue = [6533, 253]\nclass = agree", fillcolor="#e58139f5"] ;
+2 -> 3 ;
+4 [label="gini = 0.308\nsamples = 720\nvalue = [583, 137]\nclass = agree", fillcolor="#e58139c3"] ;
+2 -> 4 ;
+5 [label="CantStopWorry <= 1.5\ngini = 0.42\nsamples = 888\nvalue = [622, 266]\nclass = agree", fillcolor="#e5813992"] ;
+1 -> 5 ;
+6 [label="gini = 0.498\nsamples = 188\nvalue = [88, 100]\nclass = disagree", fillcolor="#399de51f"] ;
+5 -> 6 ;
+7 [label="gini = 0.362\nsamples = 700\nvalue = [534, 166]\nclass = agree", fillcolor="#e58139b0"] ;
+5 -> 7 ;
+8 [label="CloseToPeople <= 3.5\ngini = 0.487\nsamples = 2516\nvalue = [1054, 1462]\nclass = disagree", fillcolor="#399de547"] ;
+0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+9 [label="DontFitIn <= 3.0\ngini = 0.5\nsamples = 1840\nvalue = [949, 891]\nclass = agree", fillcolor="#e5813910"] ;
+8 -> 9 ;
+10 [label="gini = 0.482\nsamples = 1317\nvalue = [783, 534]\nclass = agree", fillcolor="#e5813951"] ;
+9 -> 10 ;
+11 [label="gini = 0.433\nsamples = 523\nvalue = [166, 357]\nclass = disagree", fillcolor="#399de588"] ;
+9 -> 11 ;
+12 [label="FeelSafe <= 2.5\ngini = 0.262\nsamples = 676\nvalue = [105, 571]\nclass = disagree", fillcolor="#399de5d0"] ;
+8 -> 12 ;
+13 [label="gini = 0.368\nsamples = 271\nvalue = [66, 205]\nclass = disagree", fillcolor="#399de5ad"] ;
+12 -> 13 ;
+14 [label="gini = 0.174\nsamples = 405\nvalue = [39, 366]\nclass = disagree", fillcolor="#399de5e4"] ;
+12 -> 14 ;
+}
