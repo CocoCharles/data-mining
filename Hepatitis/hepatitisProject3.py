@@ -42,10 +42,10 @@ from sklearn.svm import SVC
 
 ''' READ IN DATA '''
 
-x_train = pd.read_csv('xtrainhepScaled.csv', index_col=0)
-x_test = pd.read_csv('xtesthepScaled.csv', index_col=0)
-y_train = pd.read_csv('ytrainhepScaled.csv', index_col=0)
-y_test = pd.read_csv('ytesthepScaled.csv', index_col=0)
+x_train = pd.read_csv('xtrainhep88.csv', index_col=0)
+x_test = pd.read_csv('xtesthep88.csv', index_col=0)
+y_train = pd.read_csv('ytrainhep88.csv', index_col=0)
+y_test = pd.read_csv('ytesthep88.csv', index_col=0)
 
 
 
@@ -79,16 +79,16 @@ svcclassifier.fit(x_train, y_train)
 
 # Test SVM model
 
-#Predict Test Data
+# Predict Test Data
 y_predictTest = svcclassifier.predict(x_test)
 y_predictTrain = svcclassifier.predict(x_train)
 
 print("SVM Train Accuracy:", accuracy_score(y_train,y_predictTrain)*100, "\n")
 print("SVM Test Accuracy:", accuracy_score(y_test,y_predictTest)*100, "\n")
 
-#Create Confuion Matrix
+# Create Confuion Matrix
 print("SVM Confusion Matrix:")
 print(confusion_matrix(y_test, y_predictTest))
 
-Compute Report
+# Compute Report
 print("SVM Report: \n" , classification_report(y_test, y_predictTest))

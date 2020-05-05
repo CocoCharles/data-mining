@@ -42,10 +42,10 @@ from sklearn import tree
 
 ''' READ IN DATA '''
 
-x_train = pd.read_csv('xtrainhepScaled.csv', index_col=0)
-x_test = pd.read_csv('xtesthepScaled.csv', index_col=0)
-y_train = pd.read_csv('ytrainhepScaled.csv', index_col=0)
-y_test = pd.read_csv('ytesthepScaled.csv', index_col=0)
+x_train = pd.read_csv('xtrainhep88.csv', index_col=0)
+x_test = pd.read_csv('xtesthep88.csv', index_col=0)
+y_train = pd.read_csv('ytrainhep88.csv', index_col=0)
+y_test = pd.read_csv('ytesthep88.csv', index_col=0)
 
 column_names = x_train.columns
 
@@ -70,13 +70,11 @@ print('score\n', clf_grid.score(x_train, y_train))
 
 
 # Create Decision Tree
-
 classifier = tree.DecisionTreeClassifier(criterion='gini',max_depth=4, max_leaf_nodes=6, min_samples_leaf=5, min_samples_split=3)
-
-# Perform training
 classifier = classifier.fit(x_train, y_train)
 
-# Display Tree!
+# Display Tree
+# This outputs a txt file which can be copy and pasted into http://webgraphviz.com/ to display the tree
 with open("hepatitis_gini.txt", "w") as f:
     f = tree.export_graphviz(classifier, feature_names = column_names, class_names = ['die','live'], filled = True, out_file=f)
 
@@ -93,8 +91,8 @@ y_predictTrain = classifier.predict(x_train)
 print("DT Train Accuracy: ", accuracy_score(y_train, y_predictTrain)*100, "\n")
 print("DT Test Accuracy: ", accuracy_score(y_test, y_predictTest)*100, "\n")
 
-#Create Confuion Matrix
+# Create Confuion Matrix
 print("DT Confusion Matrix:\n", confusion_matrix(y_test, y_predictTest))
 
-#Compute Report
+# Compute Report
 print("DT Report:\n" , classification_report(y_test, y_predictTest))
